@@ -5,6 +5,10 @@
 int receiver = 11;
 int rele = 7;
 int buzzer = 8;
+int minima = 500;
+int semibreve = minima*2;
+int semiminima = minima/2;
+int croma = minima/4;
 
 
 /*-----( Declare objects )-----*/
@@ -26,7 +30,31 @@ void translateIR() // takes action based on IR code received
 
   case 0xFFA857: Serial.println("Relé OFF"); digitalWrite(rele, LOW); break;
 
-  case 0xFF02FD: Serial.println("Start Jingle Bells");    break;
+  case 0xFF02FD: Serial.println("Start Jingle Bells");
+    tone(buzzer, B5, semiminima); noTone(buzzer); delay(5);
+    tone(buzzer, B5, semiminima); noTone(buzzer); delay(5);
+    tone(buzzer, B5, minima); noTone(buzzer); delay(5);
+    tone(buzzer, B5, semiminima); noTone(buzzer); delay(5);
+    tone(buzzer, B5, semiminima); noTone(buzzer); delay(5);
+    tone(buzzer, B5, minima); noTone(buzzer); delay(5);
+    tone(buzzer, B5, semiminima); noTone(buzzer); delay(5);
+    tone(buzzer, D6, semiminima); noTone(buzzer); delay(5);
+    tone(buzzer, G5, semiminima); noTone(buzzer); delay(5);
+    tone(buzzer, A5, semiminima); noTone(buzzer); delay(5);
+    tone(buzzer, B5, sembreve); noTone(buzzer); delay(5);
+    tone(buzzer, C6, semiminima); noTone(buzzer); delay(5);
+    tone(buzzer, C6, semiminima); noTone(buzzer); delay(5);
+    tone(buzzer, C6, minima); noTone(buzzer); delay(5);
+    tone(buzzer, C6, semiminima); noTone(buzzer); delay(5);
+    tone(buzzer, B5, semiminima); noTone(buzzer); delay(5);
+    tone(buzzer, B5, minima); noTone(buzzer); delay(5);
+    tone(buzzer, B5, semiminima); noTone(buzzer); delay(5);
+    tone(buzzer, A5, semiminima); noTone(buzzer); delay(5);
+    tone(buzzer, A5, semiminima); noTone(buzzer); delay(5);
+    tone(buzzer, B5, semiminima); noTone(buzzer); delay(5);
+    tone(buzzer, A5, minima); noTone(buzzer); delay(5);
+    tone(buzzer, D6, minima); noTone(buzzer);
+    break;
 
  
 
