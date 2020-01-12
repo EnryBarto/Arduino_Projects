@@ -25,10 +25,13 @@ void translateIR() // takes action based on IR code received
   switch(results.value)
 
   {
+  case 0xFFA25D: Serial.println("POWER"); digitalWrite(rele, !digitalRead(rele)); break;
 
-  case 0xFF629D: Serial.println("Relé ON"); digitalWrite(rele, HIGH); break;
+  case 0xFF629D: Serial.println("Relé ON"); digitalWrite(rele, LOW); break;
 
-  case 0xFFA857: Serial.println("Relé OFF"); digitalWrite(rele, LOW); break;
+  case 0xFFA857: Serial.println("Relé OFF"); digitalWrite(rele, HIGH); break;
+
+  case 0xFFE21D: Serial.println("STOP"); noTone(buzzer); break;
 
   case 0xFF02FD: Serial.println("Start Jingle Bells");
     tone(buzzer, B5); delay(semiminima); noTone(buzzer); delay(5);
@@ -95,6 +98,7 @@ void setup()   /*----( SETUP: RUNS ONCE )----*/
   Serial.println("IR Receiver Button Decode"); 
   irrecv.enableIRIn(); // Start the receiver
   pinMode(rele, OUTPUT);
+  digitalWrite(rele, HIGH);
 
 } /*--(end setup )---*/
 
