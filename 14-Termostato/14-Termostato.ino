@@ -5,13 +5,13 @@
 int tempup = 5;
 int tempdown = 6;
 int tempPin = A0;
-int engine = A1;
+int engine = 4;
 float soglia = 25;
 
 //                BS  E  D4 D5  D6 D7
 LiquidCrystal lcd(7, 8, 9, 10, 11, 12);
 
-static const int DHT_SENSOR_PIN = 2;
+static const int DHT_SENSOR_PIN = 3;
 DHT_nonblocking dht_sensor( DHT_SENSOR_PIN, DHT_SENSOR_TYPE );
 static bool measure_environment( float *temperature, float *humidity )
 {
