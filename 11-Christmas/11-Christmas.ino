@@ -10,105 +10,92 @@ int semibreve = minima*2;
 int semiminima = minima/2;
 int croma = minima/4;
 
-
 /*-----( Declare objects )-----*/
-IRrecv irrecv(receiver);     // create instance of 'irrecv'
-decode_results results;      // create instance of 'decode_results'
+IRrecv irrecv(receiver);    // create instance of 'irrecv'
+decode_results results;     // create instance of 'decode_results'
 
 /*-----( Function )-----*/
-void translateIR() // takes action based on IR code received
+void translateIR() {
+    // takes action based on IR code received
 
-// describing Remote IR codes 
+    // describing Remote IR codes
+    switch(results.value) {
+        case 0xFFA25D: Serial.println("POWER"); digitalWrite(rele, !digitalRead(rele)); break;
 
-{
+        case 0xFF629D: Serial.println("Relé ON"); digitalWrite(rele, LOW); break;
 
-  switch(results.value)
+        case 0xFFA857: Serial.println("Relé OFF"); digitalWrite(rele, HIGH); break;
 
-  {
-  case 0xFFA25D: Serial.println("POWER"); digitalWrite(rele, !digitalRead(rele)); break;
+        case 0xFFE21D: Serial.println("STOP"); noTone(buzzer); break;
 
-  case 0xFF629D: Serial.println("Relé ON"); digitalWrite(rele, LOW); break;
+        case 0xFF02FD: Serial.println("Start Jingle Bells");
+            tone(buzzer, B5); delay(semiminima); noTone(buzzer); delay(5);
+            tone(buzzer, B5); delay(semiminima); noTone(buzzer); delay(5);
+            tone(buzzer, B5); delay(minima); noTone(buzzer); delay(5);
+            tone(buzzer, B5); delay(semiminima); noTone(buzzer); delay(5);
+            tone(buzzer, B5); delay(semiminima); noTone(buzzer); delay(5);
+            tone(buzzer, B5); delay(minima); noTone(buzzer); delay(5);
+            tone(buzzer, B5); delay(semiminima); noTone(buzzer); delay(5);
+            tone(buzzer, D6); delay(semiminima); noTone(buzzer); delay(5);
+            tone(buzzer, G5); delay(semiminima); noTone(buzzer); delay(5);
+            tone(buzzer, A5); delay(semiminima); noTone(buzzer); delay(5);
+            tone(buzzer, B5); delay(semibreve); noTone(buzzer); delay(5);
+            tone(buzzer, C6); delay(semiminima); noTone(buzzer); delay(5);
+            tone(buzzer, C6); delay(semiminima); noTone(buzzer); delay(5);
+            tone(buzzer, C6); delay(minima); noTone(buzzer); delay(5);
+            tone(buzzer, C6); delay(semiminima); noTone(buzzer); delay(5);
+            tone(buzzer, B5); delay(semiminima); noTone(buzzer); delay(5);
+            tone(buzzer, B5); delay(minima); noTone(buzzer); delay(5);
+            tone(buzzer, B5); delay(semiminima); noTone(buzzer); delay(5);
+            tone(buzzer, A5); delay(semiminima); noTone(buzzer); delay(5);
+            tone(buzzer, A5); delay(semiminima); noTone(buzzer); delay(5);
+            tone(buzzer, B5); delay(semiminima); noTone(buzzer); delay(5);
+            tone(buzzer, A5); delay(minima); noTone(buzzer); delay(5);
+            tone(buzzer, D6); delay(minima); noTone(buzzer);
+            tone(buzzer, B5); delay(semiminima); noTone(buzzer); delay(5);
+            tone(buzzer, B5); delay(semiminima); noTone(buzzer); delay(5);
+            tone(buzzer, B5); delay(minima); noTone(buzzer); delay(5);
+            tone(buzzer, B5); delay(semiminima); noTone(buzzer); delay(5);
+            tone(buzzer, B5); delay(semiminima); noTone(buzzer); delay(5);
+            tone(buzzer, B5); delay(minima); noTone(buzzer); delay(5);
+            tone(buzzer, B5); delay(semiminima); noTone(buzzer); delay(5);
+            tone(buzzer, D6); delay(semiminima); noTone(buzzer); delay(5);
+            tone(buzzer, G5); delay(semiminima); noTone(buzzer); delay(5);
+            tone(buzzer, A5); delay(semiminima); noTone(buzzer); delay(5);
+            tone(buzzer, B5); delay(semibreve); noTone(buzzer); delay(5);
+            tone(buzzer, C6); delay(semiminima); noTone(buzzer); delay(5);
+            tone(buzzer, C6); delay(semiminima); noTone(buzzer); delay(5);
+            tone(buzzer, C6); delay(minima); noTone(buzzer); delay(5);
+            tone(buzzer, C6); delay(semiminima); noTone(buzzer); delay(5);
+            tone(buzzer, B5); delay(semiminima); noTone(buzzer); delay(5);
+            tone(buzzer, B5); delay(minima); noTone(buzzer); delay(5);
+            tone(buzzer, D6); delay(semiminima); noTone(buzzer); delay(5);
+            tone(buzzer, D6); delay(semiminima); noTone(buzzer); delay(5);
+            tone(buzzer, C6); delay(semiminima); noTone(buzzer); delay(5);
+            tone(buzzer, A5); delay(semiminima); noTone(buzzer); delay(5);
+            tone(buzzer, G5); delay(semibreve); noTone(buzzer); break;
+    
+        default: Serial.println("Unrecognized command");
+    }
 
-  case 0xFFA857: Serial.println("Relé OFF"); digitalWrite(rele, HIGH); break;
+    // Do not get immediate repeat
+    delay(500);
+}
 
-  case 0xFFE21D: Serial.println("STOP"); noTone(buzzer); break;
+void setup() {
+    Serial.begin(9600);
+    Serial.println("IR Receiver Button Decode"); 
 
-  case 0xFF02FD: Serial.println("Start Jingle Bells");
-    tone(buzzer, B5); delay(semiminima); noTone(buzzer); delay(5);
-    tone(buzzer, B5); delay(semiminima); noTone(buzzer); delay(5);
-    tone(buzzer, B5); delay(minima); noTone(buzzer); delay(5);
-    tone(buzzer, B5); delay(semiminima); noTone(buzzer); delay(5);
-    tone(buzzer, B5); delay(semiminima); noTone(buzzer); delay(5);
-    tone(buzzer, B5); delay(minima); noTone(buzzer); delay(5);
-    tone(buzzer, B5); delay(semiminima); noTone(buzzer); delay(5);
-    tone(buzzer, D6); delay(semiminima); noTone(buzzer); delay(5);
-    tone(buzzer, G5); delay(semiminima); noTone(buzzer); delay(5);
-    tone(buzzer, A5); delay(semiminima); noTone(buzzer); delay(5);
-    tone(buzzer, B5); delay(semibreve); noTone(buzzer); delay(5);
-    tone(buzzer, C6); delay(semiminima); noTone(buzzer); delay(5);
-    tone(buzzer, C6); delay(semiminima); noTone(buzzer); delay(5);
-    tone(buzzer, C6); delay(minima); noTone(buzzer); delay(5);
-    tone(buzzer, C6); delay(semiminima); noTone(buzzer); delay(5);
-    tone(buzzer, B5); delay(semiminima); noTone(buzzer); delay(5);
-    tone(buzzer, B5); delay(minima); noTone(buzzer); delay(5);
-    tone(buzzer, B5); delay(semiminima); noTone(buzzer); delay(5);
-    tone(buzzer, A5); delay(semiminima); noTone(buzzer); delay(5);
-    tone(buzzer, A5); delay(semiminima); noTone(buzzer); delay(5);
-    tone(buzzer, B5); delay(semiminima); noTone(buzzer); delay(5);
-    tone(buzzer, A5); delay(minima); noTone(buzzer); delay(5);
-    tone(buzzer, D6); delay(minima); noTone(buzzer);
-    tone(buzzer, B5); delay(semiminima); noTone(buzzer); delay(5);
-    tone(buzzer, B5); delay(semiminima); noTone(buzzer); delay(5);
-    tone(buzzer, B5); delay(minima); noTone(buzzer); delay(5);
-    tone(buzzer, B5); delay(semiminima); noTone(buzzer); delay(5);
-    tone(buzzer, B5); delay(semiminima); noTone(buzzer); delay(5);
-    tone(buzzer, B5); delay(minima); noTone(buzzer); delay(5);
-    tone(buzzer, B5); delay(semiminima); noTone(buzzer); delay(5);
-    tone(buzzer, D6); delay(semiminima); noTone(buzzer); delay(5);
-    tone(buzzer, G5); delay(semiminima); noTone(buzzer); delay(5);
-    tone(buzzer, A5); delay(semiminima); noTone(buzzer); delay(5);
-    tone(buzzer, B5); delay(semibreve); noTone(buzzer); delay(5);
-    tone(buzzer, C6); delay(semiminima); noTone(buzzer); delay(5);
-    tone(buzzer, C6); delay(semiminima); noTone(buzzer); delay(5);
-    tone(buzzer, C6); delay(minima); noTone(buzzer); delay(5);
-    tone(buzzer, C6); delay(semiminima); noTone(buzzer); delay(5);
-    tone(buzzer, B5); delay(semiminima); noTone(buzzer); delay(5);
-    tone(buzzer, B5); delay(minima); noTone(buzzer); delay(5);
-    tone(buzzer, D6); delay(semiminima); noTone(buzzer); delay(5);
-    tone(buzzer, D6); delay(semiminima); noTone(buzzer); delay(5);
-    tone(buzzer, C6); delay(semiminima); noTone(buzzer); delay(5);
-    tone(buzzer, A5); delay(semiminima); noTone(buzzer); delay(5);
-    tone(buzzer, G5); delay(semibreve); noTone(buzzer); break;
+    irrecv.enableIRIn();    // Start the receiver
 
- 
+    pinMode(rele, OUTPUT);
+    digitalWrite(rele, HIGH);
+}
 
-  default: 
-    Serial.println("Unrecognized command");
-
-  }// End Case
-
-  delay(500); // Do not get immediate repeat
-
-
-} //END translateIR
-
-void setup()   /*----( SETUP: RUNS ONCE )----*/
-{
-  Serial.begin(9600);
-  Serial.println("IR Receiver Button Decode"); 
-  irrecv.enableIRIn(); // Start the receiver
-  pinMode(rele, OUTPUT);
-  digitalWrite(rele, HIGH);
-
-} /*--(end setup )---*/
-
-
-void loop()   /*----( LOOP: RUNS CONSTANTLY )----*/
-{
-  if (irrecv.decode(&results)) // have we received an IR signal?
-
-  {
-    translateIR(); 
-    irrecv.resume(); // receive the next value
-  }  
-}/* --(end main loop )-- */
+void loop() {
+    // have we received an IR signal?
+    if (irrecv.decode(&results)) {
+        translateIR(); 
+        irrecv.resume();    // receive the next value
+    }
+}

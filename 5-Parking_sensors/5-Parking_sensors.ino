@@ -10,51 +10,58 @@
 #define distanza2 15 // imposta la seconda distanza in cm
 #define distanza3 8 // imposta la terza distanza in cm
 
+
 NewPing sonar(trigger, echo, maxd); // assegna i ruoli ai pin del sensore
 
-void setup(){
-pinMode(ledv, OUTPUT); // imposta il led verde come output
-pinMode(ledg, OUTPUT); // imposta il led giallo come output
-pinMode(ledr, OUTPUT); // imposta il led rosso come output
-pinMode(allarm, OUTPUT); // imposta l'avvisatore acustico come output
-Serial.begin(9600);
+void setup() {
+    pinMode(ledv, OUTPUT); // imposta il led verde come output
+    pinMode(ledg, OUTPUT); // imposta il led giallo come output
+    pinMode(ledr, OUTPUT); // imposta il led rosso come output
+    pinMode(allarm, OUTPUT); // imposta l'avvisatore acustico come output
+    Serial.begin(9600);
 }
 
-void loop(){
+void loop() {
+    int lettura=sonar.ping_cm(); // imposta il valore della lettura uguale al valore letto dal sonar in cm
 
-  int lettura=sonar.ping_cm(); // imposta il valore della lettura uguale al valore letto dal sonar in cm
-    if(lettura<distanza1){ // controlla se il sonar rileva un oggetto a distanza minore della distanza 1
-      digitalWrite(ledv, LOW); // spegne il led verde
-      digitalWrite(ledg, HIGH); // accende il pin giallo
-      digitalWrite(ledr, LOW); // spegne il led rosso
-      digitalWrite(allarm, LOW); // spegne l'avvisatore acustico
-      if(lettura==0){ // controlla se il sonar non rileva alcun oggetto
-       digitalWrite(ledv, HIGH); // accende il led verde 
-       digitalWrite(ledg, LOW); // spegne il led giallo
-       digitalWrite(ledr, LOW); // spegne il led rosso
-       digitalWrite(allarm, LOW); // spegne l'avvisatore acustico
-      }
-      else{ // se la lettura è diversa da 0...
-        if(lettura<distanza2){ // controlla se il sonar rileva un oggetto a distanza minore della distanza 2
-         digitalWrite(ledv, LOW); // spegne il led verde
-         digitalWrite(ledg, LOW); // spegne il led giallo
-         digitalWrite(ledr, HIGH); // accende il led rosso
-         digitalWrite(allarm, LOW); // spegne l'avvisatore acustico
-         if(lettura<distanza3){ // controlla se il sonar rileva un oggetto a distanza minore della distanza 3
-           digitalWrite(ledv, LOW); // spegne il led verde
-           digitalWrite(ledg, LOW); // spegne il led giallo
-           digitalWrite(ledr, HIGH); // accende il led rosso
-           digitalWrite(allarm, HIGH); // accende l'avvisatore acustico
+    // controlla se il sonar rileva un oggetto a distanza minore della distanza 1
+    if (lettura<distanza1) { 
+        digitalWrite(ledv, LOW); // spegne il led verde
+        digitalWrite(ledg, HIGH); // accende il pin giallo
+        digitalWrite(ledr, LOW); // spegne il led rosso
+        digitalWrite(allarm, LOW); // spegne l'avvisatore acustico
+
+        // controlla se il sonar non rileva alcun oggetto
+        if (lettura==0) {
+            digitalWrite(ledv, HIGH); // accende il led verde 
+            digitalWrite(ledg, LOW); // spegne il led giallo
+            digitalWrite(ledr, LOW); // spegne il led rosso
+            digitalWrite(allarm, LOW); // spegne l'avvisatore acustico
+        } else {
+            // controlla se il sonar rileva un oggetto a distanza minore della distanza 2
+            if (lettura<distanza2) {
+                digitalWrite(ledv, LOW); // spegne il led verde
+                digitalWrite(ledg, LOW); // spegne il led giallo
+                digitalWrite(ledr, HIGH); // accende il led rosso
+                digitalWrite(allarm, LOW); // spegne l'avvisatore acustico
+
+                // controlla se il sonar rileva un oggetto a distanza minore della distanza 3
+                if (lettura<distanza3) {
+                    digitalWrite(ledv, LOW); // spegne il led verde
+                    digitalWrite(ledg, LOW); // spegne il led giallo
+                    digitalWrite(ledr, HIGH); // accende il led rosso
+                    digitalWrite(allarm, HIGH); // accende l'avvisatore acustico
+                }
+            }
         }
-        }
-      }
-    }
-    else{ // se la lettura non è minore della distanza 1...
-      digitalWrite(ledv, HIGH); // accende il led verde
-      digitalWrite(ledg, LOW); // spegne il led giallo
-      digitalWrite(ledr, LOW); // spegne il led rosso
-      digitalWrite(allarm, LOW); // spegne l'avvisatore acustico
-  }  
- Serial.println(lettura);
- delay(50);
-  }
+    } else {
+        digitalWrite(ledv, HIGH); // accende il led verde
+        digitalWrite(ledg, LOW); // spegne il led giallo
+        digitalWrite(ledr, LOW); // spegne il led rosso
+        digitalWrite(allarm, LOW); // spegne l'avvisatore acustico
+    }  
+
+    Serial.println(lettura);
+
+    delay(50);
+}
