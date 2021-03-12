@@ -29,42 +29,42 @@ All the code is commented in Italian.
 
 ### 1. Blink
 
-This code just makes a LED blink. [Link](/1-Blink).
+This code just makes a LED blink. [Link](/01-Blink).
 
 ### 2. Button
 
-This code uses a button to turn on and off two LEDs. [Link](/2-Button).
+This code uses a button to turn on and off two LEDs. [Link](/02-Button).
 
 ### 3. Engine with Buttons
 
-This code is used to turn on and off a DC motor using a button and a LED as feedback. [Link](/3-Engine-with-Buttons).
+This code is used to turn on and off a DC motor using a button and a LED as feedback. [Link](/03-Engine-with-Buttons).
 
 ### 4. Photoresistor
 
-This code uses a LED as feedback when there isn't enough light. [Link](/4-Photoresistor).
+This code uses a LED as feedback when there isn't enough light. [Link](/04-Photoresistor).
 
 ### 5. Parking Sensors
 
-This code emulates a car's parking sensor, with LEDs and buzzers. [Link](/5-Parking-sensors).
+This code emulates a car's parking sensor, with LEDs and buzzers. [Link](/05-Parking-sensors).
 
 ### 6. Fade
 
-This code makes a LED fade when a button is clicked. [Link](/6-Fade).
+This code makes a LED fade when a button is clicked. [Link](/06-Fade).
 
 ### 7. GY87
 
-* **BMP180:** This code prints the altitude, the pressure and the temperature. [Link](/7-GY87/BMP180).
-* **MPU6050:** This code prints the temperature and the acceleration (both linear and angular). [Link](/7-GY87/MPU6050).
+* **BMP180:** This code prints the altitude, the pressure and the temperature. [Link](/07-GY87/BMP180).
+* **MPU6050:** This code prints the temperature and the acceleration (both linear and angular). [Link](/07-GY87/MPU6050).
 
 ### 8. Ric. Trasm. IR
 
-* **Ricevitore:** This code reads data from an IR remote. [Link](/8-Ric-Trasm-IR/Ricevitore).
-* **Trasmettitore:** This code sends with an IR remote. [Link](/8-Ric-Trasm-IR/Trasmettitore).
-* **Telecomando:** These codes makes the arduino emulate my televisions remotes. [Link](8-Ric-Trasm-IR/Telecomando).
+* **Ricevitore:** This code reads data from an IR remote. [Link](/08-Ric-Trasm-IR/Ricevitore).
+* **Trasmettitore:** This code sends with an IR remote. [Link](/08-Ric-Trasm-IR/Trasmettitore).
+* **Telecomando:** These codes makes the arduino emulate my televisions remotes. [Link](08-Ric-Trasm-IR/Telecomando).
 
 ### 9. Rele with IR Remote
 
-This code makes a relay turn on and off with a remote. [Link](/9-Rele-whit-IRremote).
+This code makes a relay turn on and off with a remote. [Link](/09-Rele-with-IRremote).
 
 ### 10. Jingle Bells
 
