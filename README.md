@@ -37,7 +37,7 @@ This code uses a button to turn on and off two LEDs. [Link](/02-Button).
 
 ### 3. Engine with Buttons
 
-This code is used to turn on and off a DC motor using a button and a LED as feedback. [Link](/03-Engine-with-Buttons).
+This code is used to turn on and off a DC motor using a button and a LED as feedback. [Link](/03-Engine_with_Buttons).
 
 ### 4. Photoresistor
 
@@ -45,7 +45,7 @@ This code uses a LED as feedback when there isn't enough light. [Link](/04-Photo
 
 ### 5. Parking Sensors
 
-This code emulates a car's parking sensor, with LEDs and buzzers. [Link](/05-Parking-sensors).
+This code emulates a car's parking sensor, with LEDs and buzzers. [Link](/05-Parking_sensors).
 
 ### 6. Fade
 
@@ -58,17 +58,17 @@ This code makes a LED fade when a button is clicked. [Link](/06-Fade).
 
 ### 8. Ric. Trasm. IR
 
-* **Ricevitore:** This code reads data from an IR remote. [Link](/08-Ric-Trasm-IR/Ricevitore).
-* **Trasmettitore:** This code sends with an IR remote. [Link](/08-Ric-Trasm-IR/Trasmettitore).
-* **Telecomando:** These codes makes the arduino emulate my televisions remotes. [Link](08-Ric-Trasm-IR/Telecomando).
+* **Ricevitore:** This code reads data from an IR remote. [Link](/08-Ric_Trasm_IR/Ricevitore).
+* **Trasmettitore:** This code sends with an IR remote. [Link](/08-Ric_Trasm_IR/Trasmettitore).
+* **Telecomando:** These codes makes the arduino emulate my televisions remotes. [Link](08-Ric_Trasm_IR/Telecomando).
 
 ### 9. Rele with IR Remote
 
-This code makes a relay turn on and off with a remote. [Link](/09-Rele-with-IRremote).
+This code makes a relay turn on and off with a remote. [Link](/09-Rele_with_IRremote).
 
 ### 10. Jingle Bells
 
-This code makes a buzzer play Jingle Bells. [Link](/10-Jingle-bells).
+This code makes a buzzer play Jingle Bells. [Link](/10-Jingle_bells).
 
 ### 11. Christmas
 

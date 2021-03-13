@@ -2,7 +2,6 @@
 #include <EEPROM.h>
 #include <LiquidCrystal_I2C.h>
 
-
 HX711 loadcell;
 
 #define BUTTON1 5 // Pin del pulsante MENU
@@ -10,7 +9,6 @@ HX711 loadcell;
 #define BUTTON3 7 // Pin del pulsante -
 #define BUTTON4 8 // Pin del pulsante INVIO
 #define RELE 9    // Pin del relé
-//#define POTENZIOMETRO A5  // Pin del potenziometro
 
 // PIN SENSORE PRESSIONE
 const int LOADCELL_DOUT_PIN = 11;
@@ -26,18 +24,20 @@ const float PRESS4 = 0.3; // Pressione 3: 0,3 bar
 const float PRESS5 = 0.6; // Pressione massima: 0,6 bar
 
 // PROTOTIPI
-void controllo();
-void inizio();
-void rele(int t_on, int t_off);
-void menu(int press_iniz, int press_fin);
-void modifica(float press_base, int *t_on, int *t_off);
-void visualizza_modifica(int tempo, float press_base);
-void salva_eeprom(int valore, int i);
-int leggi_eeprom(int i);
+void controlla_bottone(); // CONTROLLA SE IL PRIMO PULSANTE VIENE PREMUTO
+void visualizza_pressione(); // VISUALIZZA LA PRESSIONE NELLA PAGINA INIZIALE
+void rele(int t_on, int t_off); // ACCENDE E SPEGNE IL RELE
+void menu(int press_iniz, int press_fin); // VISUALIZZA LE PAGINE DEL MENU
+void modifica_tempi(float press_base, int *t_on, int *t_off); // MODIFICA I TEMPI DI INIEZIONE
+void visualizza_modifiche(int tempo, float press_base); // DURANTE LA MODIFICA, VISUALIZZA LE PRESSIONI "SOGLIA" E I RELATIVI TEMPI
+void scrivi_eeprom(int valore, int i); // SOVRASCRIVE LA EEPROM
+int leggi_eeprom(int i); // LEGGE LA EEPROM
+float leggi_pressione(); // LEGGE LA PRESSIONE DAL SENSORE
 
 float pressione;  // Valore della pressione calcolata
 int funzione;     // Contiene l'indice del menu in cui ci si trova 0: Pagina iniziale
-unsigned long tempo, ritardo;
+unsigned long tempo, ritardo; // Contengono il tempo assegnato dalla funzione millis()
+bool iniezione = false; // Vero se è in corso l'iniezione
 
 // TEMPI INIEZIONE ATTIVA
 int t_on1 = leggi_eeprom(0);
@@ -52,172 +52,200 @@ int t_off3 = leggi_eeprom(6);
 int t_off4 = leggi_eeprom(7);
 
 void setup() {
+
+  Serial.begin(9600);
+  // INIZIALIZZAZIONE SENSORE DI PRESSIONE
   const long LOADCELL_OFFSET = 360000;
   const long LOADCELL_DIVIDER = 360000;
   loadcell.begin(LOADCELL_DOUT_PIN, LOADCELL_SCK_PIN);
   loadcell.set_scale(LOADCELL_DIVIDER);
   loadcell.set_offset(LOADCELL_OFFSET);
-  
+
+  // INIZIALIZZAZIONE INPUT / OUTPUT
   pinMode(BUTTON1, INPUT);
   pinMode(BUTTON2, INPUT);
   pinMode(BUTTON3, INPUT);
   pinMode(BUTTON4, INPUT);
   pinMode(RELE, OUTPUT); 
-  
-  funzione = 0;
-  
+
+  // INIZIALIZZAZIONE DELL'LCD
   lcd.init();
   lcd.backlight();
   lcd.setCursor(0, 0);
   lcd.print("   ACCENSIONE   ");
-  pressione = loadcell.get_units(5) / 100 * 1.8;
   for (int i = 0; i < 16; i++) {
     lcd.setCursor(i, 1);
     lcd.print("-");
     delay(150);
   }
+
+  funzione = 0;
+  pressione = leggi_pressione();
 }
 
-void loop() {
-  controllo();
+void loop() { 
+
+  // Esegue il controllo sul pulsante solo se non è in corso l'iniezione
+  if (iniezione == false) {
+    controlla_bottone();
+  } else {
+    funzione = 0; // Se si sta visualizzando il menu ed inizia l'iniezione, torna alla pagina iniziale
+  }
   
+  // IN BASE ALLA PRESSIONE DEL TASTO VISUALIZZA UNA PAGINA NELL'LCD
   if (funzione == 0) {
-    inizio();
+    visualizza_pressione();
   }
 
-  else if (funzione == 1) {
-    menu(PRESS1, PRESS2);
-    if (digitalRead(BUTTON4)==HIGH) {
-      while (digitalRead(BUTTON4)==HIGH) {
-        lcd.setCursor(0,0);
-        lcd.print("MODIFICA        ");
-      }
-      modifica(PRESS1, &t_on1, &t_off1);
-    }
-  }                                             
-
-  else if (funzione == 2) {
-    menu(PRESS2, PRESS3);
-    if (digitalRead(BUTTON4)==HIGH) {
-      while (digitalRead(BUTTON4)==HIGH) {
-        lcd.setCursor(0,0);
-        lcd.print("MODIFICA        ");
-      }
-      modifica(PRESS2, &t_on2, &t_off2);
-    }
-  }
-
-  else if (funzione == 3) {
-    menu(PRESS3, PRESS4);
-    if (digitalRead(BUTTON4)==HIGH) {
-      while (digitalRead(BUTTON4)==HIGH) {
-        lcd.setCursor(0,0);
-        lcd.print("MODIFICA        ");
-      }
-      modifica(PRESS3, &t_on3, &t_off3);
-    }
-  }
-
-  else if (funzione == 4) {
-    menu(PRESS4, PRESS5);
-    if (digitalRead(BUTTON4)==HIGH) {
-      while (digitalRead(BUTTON4)==HIGH) {
-        lcd.setCursor(0,0);
-        lcd.print("MODIFICA        ");
-      }
-      modifica(PRESS4, &t_on4, &t_off4);
-    }
-  }
-
-  else if (funzione == 5) {
-    lcd.setCursor(0,0);
-    lcd.print("5)SALVA I TEMPI ");
-    if (digitalRead(BUTTON4)==HIGH) {
-      while (digitalRead(BUTTON4)==HIGH) {}
-      
-      while ((digitalRead(BUTTON4) == LOW) && (digitalRead(BUTTON1) == LOW)) {
-        lcd.setCursor(0,0);
-        lcd.print("CONFERMI?       ");
-        lcd.setCursor(0,1);
-        lcd.print("BT4 x CONFERMARE");
-      }
-
-      if (digitalRead(BUTTON4) == HIGH) {
+  // VISUALIZZA I MENU SOLO SE NON è IN CORSO L'INIEZIONE
+  if (iniezione == false) {  
+    if (funzione == 1) {
+      menu(PRESS1, PRESS2);
+      if (digitalRead(BUTTON4)==HIGH) {
         while (digitalRead(BUTTON4)==HIGH) {
           lcd.setCursor(0,0);
-          lcd.print(" SALVATAGGIO IN ");
-          lcd.setCursor(0,1);
-          lcd.print("    CORSO...    ");
+          lcd.print("MODIFICA        ");
         }
-        salva_eeprom(t_on1, 0);
-        salva_eeprom(t_on2, 1);
-        salva_eeprom(t_on3, 2);
-        salva_eeprom(t_on4, 3);
-        salva_eeprom(t_off1, 4);
-        salva_eeprom(t_off2, 5);
-        salva_eeprom(t_off3, 6);
-        salva_eeprom(t_off4, 7);
-        delay(2000);
+        modifica_tempi(PRESS1, &t_on1, &t_off1);
       }
+    }                                             
 
-      else if (digitalRead(BUTTON1) == HIGH) {
-        while (digitalRead(BUTTON1)==HIGH) {
+    else if (funzione == 2) {
+      menu(PRESS2, PRESS3);
+      if (digitalRead(BUTTON4)==HIGH) {
+        while (digitalRead(BUTTON4)==HIGH) {
           lcd.setCursor(0,0);
-          lcd.print("  SALVATAGGIO   ");
-          lcd.setCursor(0,1);
-          lcd.print("   ANNULLATO    ");
+          lcd.print("MODIFICA        ");
         }
-        delay(2000);
+        modifica_tempi(PRESS2, &t_on2, &t_off2);
       }
-      funzione = 0;
+    }
+
+    else if (funzione == 3) {
+      menu(PRESS3, PRESS4);
+      if (digitalRead(BUTTON4)==HIGH) {
+        while (digitalRead(BUTTON4)==HIGH) {
+          lcd.setCursor(0,0);
+          lcd.print("MODIFICA        ");
+        }
+        modifica_tempi(PRESS3, &t_on3, &t_off3);
+      }
+    }
+
+    else if (funzione == 4) {
+      menu(PRESS4, PRESS5);
+      if (digitalRead(BUTTON4)==HIGH) {
+        while (digitalRead(BUTTON4)==HIGH) {
+          lcd.setCursor(0,0);
+          lcd.print("MODIFICA        ");
+        }
+        modifica_tempi(PRESS4, &t_on4, &t_off4);
+      }
+    }
+
+    else if (funzione == 5) {
+      lcd.setCursor(0,0);
+      lcd.print("5)SALVA I TEMPI ");
+      if (digitalRead(BUTTON4)==HIGH) {
+        while (digitalRead(BUTTON4)==HIGH) {}
+
+        // CHIEDE LA CONFERMA PER SOVRASCRIVERE I DATI NELLA EEPROM
+        while ((digitalRead(BUTTON4) == LOW) && (digitalRead(BUTTON1) == LOW)) {
+          lcd.setCursor(0,0);
+          lcd.print("CONFERMI?       ");
+          lcd.setCursor(0,1);
+          lcd.print("BT4 x CONFERMARE");
+        }
+
+        // SOVRASCRIVE I DATI NELLA EEPROM
+        if (digitalRead(BUTTON4) == HIGH) {
+          while (digitalRead(BUTTON4)==HIGH) {
+            lcd.setCursor(0,0);
+            lcd.print(" SALVATAGGIO IN ");
+            lcd.setCursor(0,1);
+            lcd.print("    CORSO...    ");
+          }
+          scrivi_eeprom(t_on1, 0);
+          scrivi_eeprom(t_on2, 1);
+          scrivi_eeprom(t_on3, 2);
+          scrivi_eeprom(t_on4, 3);
+          scrivi_eeprom(t_off1, 4);
+          scrivi_eeprom(t_off2, 5);
+          scrivi_eeprom(t_off3, 6);
+          scrivi_eeprom(t_off4, 7);
+          delay(2000);
+        }
+
+        // ESCE DAL MENU SENZA SALVARE
+        else if (digitalRead(BUTTON1) == HIGH) {
+          while (digitalRead(BUTTON1)==HIGH) {
+            lcd.setCursor(0,0);
+            lcd.print("  SALVATAGGIO   ");
+            lcd.setCursor(0,1);
+            lcd.print("   ANNULLATO    ");
+          }
+          delay(2000);
+        }
+        funzione = 0;
+      }
     }
   }
 
-  controllo();
-  
-  pressione = loadcell.get_units(3) / 100 * 1.8;
-  
-  if (funzione == 0) {
-    inizio();
+  if (iniezione == false) {
+    controlla_bottone();
   }
   
+  pressione = leggi_pressione();
+  
+  if (funzione == 0) {
+    visualizza_pressione();
+  }
+
+  // AZIONA IL RELE IN BASE ALLA PRESSIONE
   if (pressione <= PRESS1) {
     tempo = millis();
+    iniezione = false;
     lcd.setCursor(0,1);
     lcd.print("INIEZIONE: OFF  ");
     digitalWrite(RELE, LOW);
-    delay(50);
+    delay(5);
   }
 
   else if (pressione < PRESS2) {
+    iniezione = true;
     lcd.setCursor(0,1);
     lcd.print("INIEZIONE: ON 1 ");
     rele(t_on1, t_off1);
   }
   
   else if (pressione < PRESS3) {
+    iniezione = true;
     lcd.setCursor(0,1);
     lcd.print("INIEZIONE: ON 2 ");
     rele(t_on2, t_off2);
   }
   
   else if (pressione < PRESS4) {
+    iniezione = true;
     lcd.setCursor(0,1);
     lcd.print("INIEZIONE: ON 3 ");
     rele(t_on3, t_off3);
   }
 
   else {
+    iniezione = true;
     lcd.setCursor(0,1);
     lcd.print("INIEZIONE: ON 4 ");
     rele(t_on4, t_off4);
   }   
 
-  controllo();
-  
+  if (iniezione == false) {
+    controlla_bottone();
+  }
 }
 
-void controllo() {
+// CONTROLLA SE IL PRIMO PULSANTE VIENE PREMUTO
+void controlla_bottone() {
   if (digitalRead(BUTTON1) == true) {
   while (digitalRead(BUTTON1) == true) {
     lcd.setCursor(0,0);
@@ -232,30 +260,33 @@ void controllo() {
   }
 }
 
-void inizio() {
+// VISUALIZZA LA PRESSIONE NELLA PAGINA INIZIALE
+void visualizza_pressione() {
   lcd.setCursor(0,0);
   lcd.print("PRESS:       bar");
   lcd.setCursor(8,0);
   lcd.print(pressione);
 }
 
+// ACCENDE E SPEGNE IL RELE
 void rele(int t_on, int t_off) {
-  
   ritardo = millis() - tempo;
-  t_off -= ritardo;
-  // Se c'è stato un errore di calcolo esce dalla funzione
-  if (t_off < 0) {
+  t_on -= ritardo;
+  
+  if (t_on < 0) {
     tempo = millis();
-    return;
+    t_on = 1;
   }
-  digitalWrite(RELE, HIGH);
-  delay(t_on);
+    
+  Serial.println(t_on);
   digitalWrite(RELE, LOW);
   delay(t_off);
+  digitalWrite(RELE, HIGH);
+  delay(t_on);
   tempo = millis();
-  
 }
 
+// VISUALIZZA LE PAGINE DEL MENU
 void menu(float press_iniz, float press_fin) {
   lcd.setCursor(0,0);
   lcd.print(" )DA     A    ba");
@@ -267,7 +298,8 @@ void menu(float press_iniz, float press_fin) {
   lcd.print(press_fin, 1);
 }
 
-void modifica(float press_base, int *t_on, int *t_off) {
+// MODIFICA I TEMPI DI INIEZIONE
+void modifica_tempi(float press_base, int *t_on, int *t_off) {
   lcd.setCursor(0, 0);
   lcd.print("  INIEZIONE ON  ");
   while (digitalRead(BUTTON4) != true) {
@@ -281,13 +313,13 @@ void modifica(float press_base, int *t_on, int *t_off) {
       *t_on -= 50; 
     }
 
-    visualizza_modifica(*t_on, press_base);
+    visualizza_modifiche(*t_on, press_base);
   }
 
   while(digitalRead(BUTTON4) == true) {
     lcd.setCursor(0, 0);
     lcd.print("  INIEZIONE OFF ");
-    visualizza_modifica(*t_off, press_base);
+    visualizza_modifiche(*t_off, press_base);
   }
   
   while (digitalRead(BUTTON4) != true) {
@@ -301,7 +333,7 @@ void modifica(float press_base, int *t_on, int *t_off) {
       *t_off -= 50; 
     }
     
-    visualizza_modifica(*t_off, press_base);
+    visualizza_modifiche(*t_off, press_base);
   }
   while (digitalRead(BUTTON4) == true) {
     lcd.setCursor(0, 0);
@@ -311,7 +343,7 @@ void modifica(float press_base, int *t_on, int *t_off) {
 }
 
 // DURANTE LA MODIFICA, VISUALIZZA LE PRESSIONI "SOGLIA" E I RELATIVI TEMPI
-void visualizza_modifica(int tempo, float press_base) {
+void visualizza_modifiche(int tempo, float press_base) {
     lcd.setCursor(3, 1);
     lcd.print(press_base, 1);  
     lcd.setCursor(0, 1);
@@ -324,12 +356,20 @@ void visualizza_modifica(int tempo, float press_base) {
     lcd.print(tempo);
 }
 
-void salva_eeprom(int valore, int i) {
+// SOVRASCRIVE LA EEPROM
+void scrivi_eeprom(int valore, int i) {
   EEPROM.update(i*2, highByte(valore));
   EEPROM.update(i*2+1, lowByte(valore));
 }
 
+// LEGGE LA EEPROM
 int leggi_eeprom(int i) {
   int lettura = EEPROM.read(i*2) * 256 + EEPROM.read(i*2+1);
   return lettura;
 }
+
+// LEGGE LA PRESSIONE DAL SENSORE
+float leggi_pressione() {
+  return loadcell.get_units(5) / 100 * 1.8;
+}
+
