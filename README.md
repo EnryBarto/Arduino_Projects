@@ -37,7 +37,7 @@ This code uses a button to turn on and off two LEDs. [Link](/02-Button).
 
 ### 3. Engine with Buttons
 
-This code is used to turn on and off a DC motor using a button and a LED as feedback. [Link](/03-Engine_with_Buttons).
+This code is used to turn on and off a DC motor using a button and a LED as feedback. [Link](/03-Engine_with_Button).
 
 ### 4. Photoresistor
 
@@ -58,9 +58,9 @@ This code makes a LED fade when a button is clicked. [Link](/06-Fade).
 
 ### 8. Ric. Trasm. IR
 
-* **Ricevitore:** This code reads data from an IR remote. [Link](/08-Ric_Trasm_IR/Ricevitore).
-* **Trasmettitore:** This code sends with an IR remote. [Link](/08-Ric_Trasm_IR/Trasmettitore).
-* **Telecomando:** These codes makes the arduino emulate my televisions remotes. [Link](08-Ric_Trasm_IR/Telecomando).
+* **Ricevitore:** This code reads data from an IR remote. [Link](/08-Ric-Trasm_IR/Ricevitore).
+* **Trasmettitore:** This code sends with an IR remote. [Link](/08-Ric-Trasm_IR/Trasmettitore).
+* **Telecomando:** These codes makes the arduino emulate my televisions remotes. [Link](08-Ric-Trasm_IR/Telecomando).
 
 ### 9. Rele with IR Remote
 
@@ -84,4 +84,4 @@ This code turns on a DC motor when the temperature is too high. [Link](/13-Condi
 
 ### 14. Termostato
 
-These codes makes the DC motor cool the temperature until it isn't as the choosen. [Link (senza_dht11)](/14-Termostato/senza_dht11). [Link (senza_termoresistore)](/14-Termostato/senza_termoresistore).
+These codes makes the DC motor cool the temperature until it isn't as the choosen. [Link](/14-Termostato), [Link (senza_dht11)](/14-Termostato/Senza_dht11), [Link (senza_termoresistore)](/14-Termostato/Senza_termoresistore).
