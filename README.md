@@ -22,6 +22,7 @@ All the code is commented in Italian.
 * [12. Distanziometro](#12-Distanziometro)
 * [13. Condizionatore](#13-Condizionatore)
 * [14. Termostato](#14-Termostato)
+* [15. Centralina](#15-Centralina)
 
 ---
 
@@ -85,3 +86,7 @@ This code turns on a DC motor when the temperature is too high. [Link](/13-Condi
 ### 14. Termostato
 
 These codes makes the DC motor cool the temperature until it isn't as the choosen. [Link](/14-Termostato), [Link (senza_dht11)](/14-Termostato/Senza_dht11), [Link (senza_termoresistore)](/14-Termostato/Senza_termoresistore).
+
+### 15. Centralina
+
+This code is used to command a turbo engine with a pressure sensor. [Link](/15-Centralina).

@@ -1,3 +1,8 @@
+/*
+ * Autore:  Bartocetti Enrico
+ * Versione: 1
+ */
+
 // IMPORTAZIONE LIBRERIE
 #include <EEPROM.h>
 #include <LiquidCrystal_I2C.h>
@@ -13,7 +18,7 @@ LiquidCrystal_I2C lcd(0x27, 16, 2); // Inizia la comunicazione I2C con l'LCD
 #define BUTTON2 6 // Pin del pulsante +
 #define BUTTON3 7 // Pin del pulsante -
 #define BUTTON4 8 // Pin del pulsante INVIO
-#define RELE 9    // Pin del relé
+#define RELE 10   // Pin del relé
 
 
 // VALORI PRESSIONE
@@ -21,7 +26,7 @@ const float PRESS1 = 0.007; // Pressione base: 0 bar
 const float PRESS2 = 0.1; // Pressione 1: 0,1 bar
 const float PRESS3 = 0.2; // Pressione 2: 0,2 bar
 const float PRESS4 = 0.3; // Pressione 3: 0,3 bar
-const float PRESS5 = 0.6; // Pressione massima: 0,6 bar
+const float PRESS5 = 1.0; // Pressione massima: 1,0 bar
 
 
 // PROTOTIPI
@@ -85,7 +90,7 @@ void setup() {
 void loop() { 
 
     // Esegue il controllo sul pulsante solo se non è in corso l'iniezione
-    if (iniezione == false) {
+    if (!iniezione) {
         controlla_bottone();
     } else {
         funzione = 0; // Se si sta visualizzando il menu ed inizia l'iniezione, torna alla pagina iniziale
@@ -97,11 +102,11 @@ void loop() {
     }
 
     // VISUALIZZA I MENU SOLO SE NON è IN CORSO L'INIEZIONE
-    if (iniezione == false) {  
+    if (!iniezione) {  
         if (funzione == 1) {
             menu(PRESS1, PRESS2);
-            if (digitalRead(BUTTON4)==HIGH) {
-                while (digitalRead(BUTTON4)==HIGH) {
+            if (digitalRead(BUTTON4)) {
+                while (digitalRead(BUTTON4)) {
                     lcd.setCursor(0,0);
                     lcd.print("MODIFICA        ");
                 }
@@ -111,8 +116,8 @@ void loop() {
 
         else if (funzione == 2) {
             menu(PRESS2, PRESS3);
-            if (digitalRead(BUTTON4)==HIGH) {
-                while (digitalRead(BUTTON4)==HIGH) {
+            if (digitalRead(BUTTON4)) {
+                while (digitalRead(BUTTON4)) {
                     lcd.setCursor(0,0);
                     lcd.print("MODIFICA        ");
                 }
@@ -122,8 +127,8 @@ void loop() {
 
         else if (funzione == 3) {
             menu(PRESS3, PRESS4);
-            if (digitalRead(BUTTON4)==HIGH) {
-                while (digitalRead(BUTTON4)==HIGH) {
+            if (digitalRead(BUTTON4)) {
+                while (digitalRead(BUTTON4)) {
                     lcd.setCursor(0,0);
                     lcd.print("MODIFICA        ");
                 }
@@ -133,8 +138,8 @@ void loop() {
 
         else if (funzione == 4) {
             menu(PRESS4, PRESS5);
-            if (digitalRead(BUTTON4)==HIGH) {
-                while (digitalRead(BUTTON4)==HIGH) {
+            if (digitalRead(BUTTON4)) {
+                while (digitalRead(BUTTON4)) {
                     lcd.setCursor(0,0);
                     lcd.print("MODIFICA        ");
                 }
@@ -145,14 +150,14 @@ void loop() {
         else if (funzione == 5) {
             lcd.setCursor(0,0);
             lcd.print("5)SALVA I TEMPI ");
-            if (digitalRead(BUTTON4)==HIGH) {
-                while (digitalRead(BUTTON4)==HIGH) {
+            if (digitalRead(BUTTON4)) {
+                while (digitalRead(BUTTON4)) {
                     lcd.setCursor(0, 0);
                     lcd.print("                ");
                 }
 
                 // CHIEDE LA CONFERMA PER SOVRASCRIVERE I DATI NELLA EEPROM
-                while ((digitalRead(BUTTON4) == LOW) && (digitalRead(BUTTON1) == LOW)) {
+                while ((!digitalRead(BUTTON4)) && (!digitalRead(BUTTON1))) {
                     lcd.setCursor(0,0);
                     lcd.print("CONFERMI?       ");
                     lcd.setCursor(0,1);
@@ -160,8 +165,8 @@ void loop() {
                 }
 
                 // SOVRASCRIVE I DATI NELLA EEPROM
-                if (digitalRead(BUTTON4) == HIGH) {
-                    while (digitalRead(BUTTON4)==HIGH) {
+                if (digitalRead(BUTTON4)) {
+                    while (digitalRead(BUTTON4)) {
                         lcd.setCursor(0,0);
                         lcd.print(" SALVATAGGIO IN ");
                         lcd.setCursor(0,1);
@@ -179,8 +184,8 @@ void loop() {
                 }
 
                 // ESCE DAL MENU SENZA SALVARE
-                else if (digitalRead(BUTTON1) == HIGH) {
-                    while (digitalRead(BUTTON1)==HIGH) {
+                else if (digitalRead(BUTTON1)) {
+                    while (digitalRead(BUTTON1)) {
                         lcd.setCursor(0,0);
                         lcd.print("  SALVATAGGIO   ");
                         lcd.setCursor(0,1);
@@ -193,7 +198,7 @@ void loop() {
         }
     }
 
-    if (iniezione == false) {
+    if (!iniezione) {
         controlla_bottone();
     }
 
@@ -241,7 +246,7 @@ void loop() {
         rele(tempi[3][0], tempi[3][1]);
     }   
 
-    if (iniezione == false) {
+    if (!iniezione) {
         controlla_bottone();
     }
 }
@@ -272,7 +277,7 @@ void visualizza_pressione() {
 // LEGGE LA PRESSIONE DAL SENSORE
 float leggi_pressione() {
     float lettura;
-    lettura = (float) (analogRead(PRESSURE_SENSOR) - 320) / 100;
+    lettura = (float) (analogRead(PRESSURE_SENSOR) - 338) / 292;
     return lettura;
 }
 
@@ -298,8 +303,8 @@ void rele(int t_off, int t_on) {
 
 // CONTROLLA SE IL PRIMO PULSANTE VIENE PREMUTO
 void controlla_bottone() {
-    if (digitalRead(BUTTON1) == true) {
-        while (digitalRead(BUTTON1) == true) {
+    if (digitalRead(BUTTON1)) {
+        while (digitalRead(BUTTON1)) {
             lcd.setCursor(0,0);
             lcd.print("                ");
         }
@@ -320,44 +325,44 @@ void modifica_tempi(float press_base, int *t_off, int *t_on) {
     lcd.print("  INIEZIONE ON  ");
 
     // MODIFICA IL TEMPO DI INIEZIONE APERTO
-    while (digitalRead(BUTTON4) != true) {
+    while (!digitalRead(BUTTON4)) {
 
         // AUMENTA IL TEMPO
-        if (digitalRead(BUTTON2) == true) {
+        if (digitalRead(BUTTON2)) {
             aumenta_tempi(press_base, t_on);
         }
 
         // DIMINUISCE IL TEMPO
-        else if (digitalRead(BUTTON3) == true) {
+        else if (digitalRead(BUTTON3)) {
             diminuisci_tempi(press_base, t_on, 450);
         }
 
         visualizza_modifiche(*t_on, press_base);
     }
 
-    while(digitalRead(BUTTON4) == true) {
+    while(digitalRead(BUTTON4)) {
         lcd.setCursor(0, 0);
         lcd.print("  INIEZIONE OFF ");
         visualizza_modifiche(*t_off, press_base);
     }
 
     // MODIFICA IL TEMPO DI INIEZIONE "CHIUSO"
-    while (digitalRead(BUTTON4) != true) {
+    while (!digitalRead(BUTTON4)) {
 
         // AUMENTA IL TEMPO
-        if (digitalRead(BUTTON2) == true) {
+        if (digitalRead(BUTTON2)) {
             aumenta_tempi(press_base, t_off);
         }
 
         // DIMINUISCE IL TEMPO
-        else if (digitalRead(BUTTON3) == true) {
+        else if (digitalRead(BUTTON3)) {
             diminuisci_tempi(press_base, t_off, 0);
         }
 
         visualizza_modifiche(*t_off, press_base);
     }
 
-    while (digitalRead(BUTTON4) == true) {
+    while (digitalRead(BUTTON4)) {
         lcd.setCursor(0, 0);
         lcd.print("  SALVATAGGIO   ");
     }
@@ -369,7 +374,7 @@ void modifica_tempi(float press_base, int *t_off, int *t_on) {
 void aumenta_tempi(float press_base, int *t) { 
     *t += 50;
     delay(400);
-    while (digitalRead(BUTTON2) == true) {
+    while (digitalRead(BUTTON2)) {
         *t += 50;
         visualizza_modifiche(*t, press_base);
         delay(200);
@@ -384,7 +389,7 @@ void diminuisci_tempi(float press_base, int *t, int t_min) {
         *t -= 50;
     }
     delay(400);
-    while (digitalRead(BUTTON3) == true) {
+    while (digitalRead(BUTTON3)) {
         if (*t > t_min) {
             *t -= 50;
         }
@@ -421,3 +426,4 @@ void scrivi_eeprom(int valore, int i) {
     EEPROM.update(i*2, highByte(valore));
     EEPROM.update(i*2+1, lowByte(valore));
 }
+
