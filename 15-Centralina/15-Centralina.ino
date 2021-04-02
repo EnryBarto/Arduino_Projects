@@ -1,7 +1,8 @@
 /*
  * Autore:  Bartocetti Enrico
- * Versione: 1
+ * Versione: 1.1
  */
+
 
 // IMPORTAZIONE LIBRERIE
 #include <EEPROM.h>
@@ -21,20 +22,12 @@ LiquidCrystal_I2C lcd(0x27, 16, 2); // Inizia la comunicazione I2C con l'LCD
 #define RELE 10   // Pin del relé
 
 
-// VALORI PRESSIONE
-const float PRESS1 = 0.007; // Pressione base: 0 bar
-const float PRESS2 = 0.1; // Pressione 1: 0,1 bar
-const float PRESS3 = 0.2; // Pressione 2: 0,2 bar
-const float PRESS4 = 0.3; // Pressione 3: 0,3 bar
-const float PRESS5 = 1.0; // Pressione massima: 1,0 bar
-
-
 // PROTOTIPI
 void menu(int press_iniz, int press_fin); // VISUALIZZA LE PAGINE DEL MENU
 void visualizza_pressione(); // VISUALIZZA LA PRESSIONE NELLA PAGINA INIZIALE
 
 float leggi_pressione(); // LEGGE LA PRESSIONE DAL SENSORE
-void rele(int t_off, int t_on); // ACCENDE E SPEGNE IL RELE
+void rele(int t_off, int t_on, int numero); // ACCENDE E SPEGNE IL RELE
 void controlla_bottone(); // CONTROLLA SE IL PRIMO PULSANTE VIENE PREMUTO
 
 void modifica_tempi(float press_base, int *t_off, int *t_on); // MODIFICA I TEMPI DI INIEZIONE
@@ -51,7 +44,9 @@ float pressione;  // Valore della pressione calcolata
 bool iniezione = false; // Vero se è in corso l'iniezione
 int tempi[4][2];  // Matrice che contiene i tempi di iniezione 0: off 1: on
 int funzione;     // Contiene l'indice del menu in cui ci si trova 0: Pagina iniziale
-unsigned long tempo_partenza, ritardo; // Contengono il tempo assegnato dalla funzione millis()
+unsigned long tempo_partenza, ritardo, inizio_iniezione; // Contengono il tempo assegnato dalla funzione millis()
+const float PRESS[5] = {0.007, 0.1, 0.2, 0.3, 3.0}; // Pressioni soglia
+const int T_ON_MIN = 300; // Tempo on minimo selezionabile
 
 
 void setup() {
@@ -84,10 +79,11 @@ void setup() {
 
     funzione = 0;
     pressione = leggi_pressione();
+    visualizza_pressione();
 }
 
 
-void loop() { 
+void loop() {
 
     // Esegue il controllo sul pulsante solo se non è in corso l'iniezione
     if (!iniezione) {
@@ -96,159 +92,143 @@ void loop() {
         funzione = 0; // Se si sta visualizzando il menu ed inizia l'iniezione, torna alla pagina iniziale
     }
 
-    // IN BASE ALLA PRESSIONE DEL TASTO VISUALIZZA UNA PAGINA NELL'LCD
-    if (funzione == 0) {
-        visualizza_pressione();
-    }
-
     // VISUALIZZA I MENU SOLO SE NON è IN CORSO L'INIEZIONE
-    if (!iniezione) {  
-        if (funzione == 1) {
-            menu(PRESS1, PRESS2);
-            if (digitalRead(BUTTON4)) {
-                while (digitalRead(BUTTON4)) {
-                    lcd.setCursor(0,0);
-                    lcd.print("MODIFICA        ");
-                }
-                modifica_tempi(PRESS1, &tempi[0][0], &tempi[0][1]);
-            }
-        }                                             
+    if (!iniezione) {
 
-        else if (funzione == 2) {
-            menu(PRESS2, PRESS3);
-            if (digitalRead(BUTTON4)) {
-                while (digitalRead(BUTTON4)) {
-                    lcd.setCursor(0,0);
-                    lcd.print("MODIFICA        ");
-                }
-                modifica_tempi(PRESS2, &tempi[1][0], &tempi[1][1]);
-            }
-        }
+        switch (funzione) {
 
-        else if (funzione == 3) {
-            menu(PRESS3, PRESS4);
-            if (digitalRead(BUTTON4)) {
-                while (digitalRead(BUTTON4)) {
-                    lcd.setCursor(0,0);
-                    lcd.print("MODIFICA        ");
-                }
-                modifica_tempi(PRESS3, &tempi[2][0], &tempi[2][1]);
-            }
-        }
-
-        else if (funzione == 4) {
-            menu(PRESS4, PRESS5);
-            if (digitalRead(BUTTON4)) {
-                while (digitalRead(BUTTON4)) {
-                    lcd.setCursor(0,0);
-                    lcd.print("MODIFICA        ");
-                }
-                modifica_tempi(PRESS4, &tempi[3][0], &tempi[3][1]);
-            }
-        }
-
-        else if (funzione == 5) {
-            lcd.setCursor(0,0);
-            lcd.print("5)SALVA I TEMPI ");
-            if (digitalRead(BUTTON4)) {
-                while (digitalRead(BUTTON4)) {
-                    lcd.setCursor(0, 0);
-                    lcd.print("                ");
-                }
-
-                // CHIEDE LA CONFERMA PER SOVRASCRIVERE I DATI NELLA EEPROM
-                while ((!digitalRead(BUTTON4)) && (!digitalRead(BUTTON1))) {
-                    lcd.setCursor(0,0);
-                    lcd.print("CONFERMI?       ");
-                    lcd.setCursor(0,1);
-                    lcd.print("BT4 x CONFERMARE");
-                }
-
-                // SOVRASCRIVE I DATI NELLA EEPROM
+            case 1:
+                menu(PRESS[0], PRESS[1]);
                 if (digitalRead(BUTTON4)) {
                     while (digitalRead(BUTTON4)) {
                         lcd.setCursor(0,0);
-                        lcd.print(" SALVATAGGIO IN ");
-                        lcd.setCursor(0,1);
-                        lcd.print("    CORSO...    ");
+                        lcd.print("MODIFICA        ");
                     }
-
-                    for (int i = 0; i < 2; i++) {
-                        for (int j = 0; j < 4; j++) {
-                            scrivi_eeprom(tempi[j][i], j + (i*4));
-                            Serial.println(tempi[j][i]);
-                        }
-                    }
-
-                    delay(2000);
+                    modifica_tempi(PRESS[0], &tempi[0][0], &tempi[0][1]);
                 }
+                break;                                       
 
-                // ESCE DAL MENU SENZA SALVARE
-                else if (digitalRead(BUTTON1)) {
-                    while (digitalRead(BUTTON1)) {
+            case 2:
+                menu(PRESS[1], PRESS[2]);
+                if (digitalRead(BUTTON4)) {
+                    while (digitalRead(BUTTON4)) {
                         lcd.setCursor(0,0);
-                        lcd.print("  SALVATAGGIO   ");
-                        lcd.setCursor(0,1);
-                        lcd.print("   ANNULLATO    ");
+                        lcd.print("MODIFICA        ");
                     }
-                    delay(2000);
+                    modifica_tempi(PRESS[1], &tempi[1][0], &tempi[1][1]);
                 }
-                funzione = 0;
-            }
-        }
-    }
+                break;
 
-    if (!iniezione) {
-        controlla_bottone();
+            case 3:
+                menu(PRESS[2], PRESS[3]);
+                if (digitalRead(BUTTON4)) {
+                    while (digitalRead(BUTTON4)) {
+                        lcd.setCursor(0,0);
+                        lcd.print("MODIFICA        ");
+                    }
+                    modifica_tempi(PRESS[2], &tempi[2][0], &tempi[2][1]);
+                }
+                break;
+
+            case 4:
+                menu(PRESS[3], PRESS[4]);
+                if (digitalRead(BUTTON4)) {
+                    while (digitalRead(BUTTON4)) {
+                        lcd.setCursor(0,0);
+                        lcd.print("MODIFICA        ");
+                    }
+                    modifica_tempi(PRESS[3], &tempi[3][0], &tempi[3][1]);
+                }
+                break;
+
+            case 5:
+                lcd.setCursor(0,0);
+                lcd.print("5)SALVA I TEMPI ");
+                if (digitalRead(BUTTON4)) {
+                    while (digitalRead(BUTTON4)) {
+                        lcd.setCursor(0, 0);
+                        lcd.print("                ");
+                    }
+
+                    // CHIEDE LA CONFERMA PER SOVRASCRIVERE I DATI NELLA EEPROM
+                    while ((!digitalRead(BUTTON4)) && (!digitalRead(BUTTON1))) {
+                        lcd.setCursor(0,0);
+                        lcd.print("CONFERMI?       ");
+                        lcd.setCursor(0,1);
+                        lcd.print("BT4 x CONFERMARE");
+                    }
+
+                    // SOVRASCRIVE I DATI NELLA EEPROM
+                    if (digitalRead(BUTTON4)) {
+                        while (digitalRead(BUTTON4)) {
+                            lcd.setCursor(0,0);
+                            lcd.print(" SALVATAGGIO IN ");
+                            lcd.setCursor(0,1);
+                            lcd.print("    CORSO...    ");
+                        }
+
+                        for (int i = 0; i < 2; i++) {
+                            for (int j = 0; j < 4; j++) {
+                                scrivi_eeprom(tempi[j][i], j + (i*4));
+                                Serial.println(tempi[j][i]);
+                            }
+                        }
+
+                        delay(2000);
+                    }
+
+                    // ESCE DAL MENU SENZA SALVARE
+                    else if (digitalRead(BUTTON1)) {
+                        while (digitalRead(BUTTON1)) {
+                            lcd.setCursor(0,0);
+                            lcd.print("  SALVATAGGIO   ");
+                            lcd.setCursor(0,1);
+                            lcd.print("   ANNULLATO    ");
+                        }
+                        delay(2000);
+                    }
+                    funzione = 0;
+                }
+                break;
+        }
     }
 
     pressione = leggi_pressione();
 
+    // VISUALIZZA LA PRESSIONE OGNI 20ms NELL'LCD
     if (funzione == 0) {
         visualizza_pressione();
+        delay(20);
     }
 
     // AZIONA IL RELE IN BASE ALLA PRESSIONE
-    if (pressione <= PRESS1) {
+    if (pressione <= PRESS[0]) {
         tempo_partenza = millis();
         iniezione = false;
         lcd.setCursor(0,1);
         lcd.print("INIEZIONE: OFF  ");
         digitalWrite(RELE, LOW);
-        delay(5);
-    }
-
-    else if (pressione < PRESS2) {
+    } else if (pressione < PRESS[1]) {
         iniezione = true;
         lcd.setCursor(0,1);
         lcd.print("INIEZIONE: ON 1 ");
-        rele(tempi[0][0], tempi[0][1]);
-    }
-
-    else if (pressione < PRESS3) {
+        rele(tempi[0][0], tempi[0][1], 1);
+    } else if (pressione < PRESS[2]) {
         iniezione = true;
         lcd.setCursor(0,1);
         lcd.print("INIEZIONE: ON 2 ");
-        rele(tempi[1][0], tempi[1][1]);
-    }
-
-    else if (pressione < PRESS4) {
+        rele(tempi[1][0], tempi[1][1], 2);
+    } else if (pressione < PRESS[3]) {
         iniezione = true;
         lcd.setCursor(0,1);
         lcd.print("INIEZIONE: ON 3 ");
-        rele(tempi[2][0], tempi[2][1]);
-    }
-
-    else {
+        rele(tempi[2][0], tempi[2][1], 3);
+    } else {
         iniezione = true;
         lcd.setCursor(0,1);
         lcd.print("INIEZIONE: ON 4 ");
-        rele(tempi[3][0], tempi[3][1]);
+        rele(tempi[3][0], tempi[3][1], 4);
     }   
-
-    if (!iniezione) {
-        controlla_bottone();
-    }
 }
 
 
@@ -262,6 +242,7 @@ void menu(float press_iniz, float press_fin) {
     lcd.print(press_iniz, 1);
     lcd.setCursor(11,0);
     lcd.print(press_fin, 1);
+    delay(50);
 }
 
 
@@ -283,7 +264,9 @@ float leggi_pressione() {
 
 
 // ACCENDE E SPEGNE IL RELE
-void rele(int t_off, int t_on) {
+void rele(int t_off, int t_on, int numero) {
+
+    // Calcola il ritardo causato dall'esecuzione del resto del codice
     ritardo = millis() - tempo_partenza;
     t_on -= ritardo;
 
@@ -293,10 +276,40 @@ void rele(int t_off, int t_on) {
         t_on = 1;
     }
 
+    inizio_iniezione = millis();
+
     digitalWrite(RELE, LOW);
-    delay(t_off);
+
+    // Mentre aspetta il tempo off, controlla se la pressione letta cambia il range
+    while (millis() - inizio_iniezione <= t_off) {
+        pressione = leggi_pressione();
+        visualizza_pressione();
+
+        // ESCE SE IL RANGE DELLA PRESSIONE è CAMBIATO
+        if ((pressione > PRESS[numero]) || (pressione < PRESS[numero-1])) {
+            return;
+        }
+
+        delay(20);
+    }
+
+    inizio_iniezione = millis();
+
     digitalWrite(RELE, HIGH);
-    delay(t_on);
+
+    // Mentre aspetta il tempo on, controlla se la pressione letta cambia il range    
+    while (millis() - inizio_iniezione <= t_on) {
+        pressione = leggi_pressione();
+        visualizza_pressione();
+
+        // ESCE SE IL RANGE DELLA PRESSIONE è CAMBIATO
+        if ((pressione > PRESS[numero]) || (pressione < PRESS[numero-1])) {
+            return;
+        }
+
+        delay(20);
+    }
+
     tempo_partenza = millis();
 }
 
@@ -309,6 +322,7 @@ void controlla_bottone() {
             lcd.print("                ");
         }
 
+        // Alla pressione, aumenta la funzione, se si è alla 5 ritorna alla pagina iniziale
         if (funzione >= 5) {
             funzione = 0;
         } else {
@@ -334,7 +348,7 @@ void modifica_tempi(float press_base, int *t_off, int *t_on) {
 
         // DIMINUISCE IL TEMPO
         else if (digitalRead(BUTTON3)) {
-            diminuisci_tempi(press_base, t_on, 450);
+            diminuisci_tempi(press_base, t_on, T_ON_MIN);
         }
 
         visualizza_modifiche(*t_on, press_base);
@@ -411,6 +425,7 @@ void visualizza_modifiche(int tempo, float press_base) {
     lcd.print("  ms");
     lcd.setCursor(10, 1);
     lcd.print(tempo);
+    delay(5);
 }
 
 
@@ -426,4 +441,3 @@ void scrivi_eeprom(int valore, int i) {
     EEPROM.update(i*2, highByte(valore));
     EEPROM.update(i*2+1, lowByte(valore));
 }
-
