@@ -1,6 +1,6 @@
 /*
  * Autore:  Bartocetti Enrico
- * Versione: 1.1
+ * Versione: 1.2
  */
 
 
@@ -46,7 +46,7 @@ int tempi[4][2];  // Matrice che contiene i tempi di iniezione 0: off 1: on
 int funzione;     // Contiene l'indice del menu in cui ci si trova 0: Pagina iniziale
 unsigned long tempo_partenza, ritardo, inizio_iniezione; // Contengono il tempo assegnato dalla funzione millis()
 const float PRESS[5] = {0.007, 0.1, 0.2, 0.3, 3.0}; // Pressioni soglia
-const int T_ON_MIN = 300; // Tempo on minimo selezionabile
+const int T_OFF_MIN = 200; // Tempo on minimo selezionabile
 
 
 void setup() {
@@ -70,7 +70,7 @@ void setup() {
     lcd.init();
     lcd.backlight();
     lcd.setCursor(0, 0);
-    lcd.print("   ACCENSIONE   ");
+    lcd.print("ACCENSIONE  v1.2");
     for (int i = 0; i < 16; i++) {
         lcd.setCursor(i, 1);
         lcd.print("-");
@@ -170,7 +170,6 @@ void loop() {
                         for (int i = 0; i < 2; i++) {
                             for (int j = 0; j < 4; j++) {
                                 scrivi_eeprom(tempi[j][i], j + (i*4));
-                                Serial.println(tempi[j][i]);
                             }
                         }
 
@@ -268,36 +267,19 @@ void rele(int t_off, int t_on, int numero) {
 
     // Calcola il ritardo causato dall'esecuzione del resto del codice
     ritardo = millis() - tempo_partenza;
-    t_on -= ritardo;
+    t_off -= ritardo;
 
-    // IN CASO DI ERRORI IMPOSTA t_on = 1
-    if (t_on < 0) {
+    // IN CASO DI ERRORI IMPOSTA t_off = 1
+    if (t_off < 0) {
         tempo_partenza = millis();
-        t_on = 1;
-    }
-
-    inizio_iniezione = millis();
-
-    digitalWrite(RELE, LOW);
-
-    // Mentre aspetta il tempo off, controlla se la pressione letta cambia il range
-    while (millis() - inizio_iniezione <= t_off) {
-        pressione = leggi_pressione();
-        visualizza_pressione();
-
-        // ESCE SE IL RANGE DELLA PRESSIONE è CAMBIATO
-        if ((pressione > PRESS[numero]) || (pressione < PRESS[numero-1])) {
-            return;
-        }
-
-        delay(20);
+        t_off = 1;
     }
 
     inizio_iniezione = millis();
 
     digitalWrite(RELE, HIGH);
 
-    // Mentre aspetta il tempo on, controlla se la pressione letta cambia il range    
+    // Mentre aspetta il tempo off, controlla se la pressione letta cambia il range
     while (millis() - inizio_iniezione <= t_on) {
         pressione = leggi_pressione();
         visualizza_pressione();
@@ -307,7 +289,24 @@ void rele(int t_off, int t_on, int numero) {
             return;
         }
 
-        delay(20);
+        delay(15);
+    }
+
+    inizio_iniezione = millis();
+
+    digitalWrite(RELE, LOW);
+
+    // Mentre aspetta il tempo on, controlla se la pressione letta cambia il range    
+    while (millis() - inizio_iniezione <= t_off) {
+        pressione = leggi_pressione();
+        visualizza_pressione();
+
+        // ESCE SE IL RANGE DELLA PRESSIONE è CAMBIATO
+        if ((pressione > PRESS[numero]) || (pressione < PRESS[numero-1])) {
+            return;
+        }
+
+        delay(15);
     }
 
     tempo_partenza = millis();
@@ -348,7 +347,7 @@ void modifica_tempi(float press_base, int *t_off, int *t_on) {
 
         // DIMINUISCE IL TEMPO
         else if (digitalRead(BUTTON3)) {
-            diminuisci_tempi(press_base, t_on, T_ON_MIN);
+            diminuisci_tempi(press_base, t_on, 0);
         }
 
         visualizza_modifiche(*t_on, press_base);
@@ -370,7 +369,7 @@ void modifica_tempi(float press_base, int *t_off, int *t_on) {
 
         // DIMINUISCE IL TEMPO
         else if (digitalRead(BUTTON3)) {
-            diminuisci_tempi(press_base, t_off, 0);
+            diminuisci_tempi(press_base, t_off, T_OFF_MIN);
         }
 
         visualizza_modifiche(*t_off, press_base);
